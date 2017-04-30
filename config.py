@@ -6,3 +6,4 @@ class Config:
 	seq_length = 30
 	top_words = 20000 - 4
 	lr = 0.001
+	num_epochs = 20
