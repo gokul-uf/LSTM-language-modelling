@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from config import Config as conf
+from preprocess import preprocessor
 from tensorflow.contrib.layers import xavier_initializer
 from tensorflow.contrib.rnn import LSTMCell
 
@@ -29,6 +30,7 @@ word_embeddings = tf.reshape(word_embeddings, [conf.batch_size, conf.seq_length 
 assert word_embeddings.shape == (conf.batch_size, conf.seq_length - 1, conf.embed_size)
 
 # RNN unrolling
+print "creating RNN"
 predictions = []
 with tf.variable_scope("rnn") as scope:
     cell = LSTMCell(conf.num_hidden_state)
@@ -59,9 +61,16 @@ gradients, _ = tf.clip_by_global_norm(gradients, 10.0)
 train_step = adam.apply_gradients(zip(gradients, variables))
 
 # preprocessing
-with open()
-
+print "Starting preprocessing"
+preproc = preprocessor()
+preproc.preprocess("data/sentences.train")
 
 # training
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
+    for i in range(conf.num_epochs):
+        for data_batch, label_batch in tqdm(preproc.get_batch(), total = len(preproc.lines) / 64):
+           assert data_batch.shape == (64, 29, 1)
+           assert label_batch.shape == (64, 29, 1)
+           print sess.run(train_step, feed_dict = {data: data_batch, next_word: label_batch})
+
