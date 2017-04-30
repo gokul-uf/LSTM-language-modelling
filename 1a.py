@@ -1,5 +1,6 @@
 import numpy as np
 import tensorflow as tf
+from tqdm import tqdm
 from config import Config as conf
 from preprocess import preprocessor
 from tensorflow.contrib.layers import xavier_initializer
@@ -66,9 +67,13 @@ preproc = preprocessor()
 preproc.preprocess("data/sentences.train")
 
 # training
-with tf.Session() as sess:
+print "Start training"
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+with tf.Session(config=config) as sess:
     sess.run(tf.global_variables_initializer())
     for i in range(conf.num_epochs):
+        print "epoch {}".format(i)
         for data_batch, label_batch in tqdm(preproc.get_batch(), total = len(preproc.lines) / 64):
            assert data_batch.shape == (64, 29, 1)
            assert label_batch.shape == (64, 29, 1)
