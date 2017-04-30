@@ -1,83 +1,67 @@
-# The dimensions for data are [Batch Size, Sequence Length, Input Dimension]. 
-'''
-For each LSTM cell that we initialise, we need to supply a value for the hidden dimension, 
-or as some people like to call it, the number of units in the LSTM cell. 
-The value of it is it up to you, 
-too high a value may lead to overfitting or a very low value may yield extremely poor results.
-'''
-
-'''
-    embedding = tf.get_variable("embedding", [args.vocab_size, args.rnn_size])
-    inputs = tf.nn.embedding_lookup(embedding, self.input_data)
-'''
-
-'''
-#TODO:
-1. mail Jason and the other guy with doubts in the paper
-2. figure out how to train with the list of outputs, we have the labels
-3. figure out how to do the embeddings stuff (one-hot, word2vec?)
-4. figure out how the embeddings will be trained 
-5. figure out how to visualize the net
-5a. figure out how an RNN in general works
-6. figure out how to use tensorboard (optional)
-'''
-import tensorflow as tf
 import numpy as np
-from tqdm import tqdm
+import tensorflow as tf
 from config import Config as conf
-import sys # argparse?
+from tensorflow.contrib.layers import xavier_initializer
+from tensorflow.contrib.rnn import LSTMCell
 
-def gen_top_words(filename):
-    vocabulary = {}
-    with open(filename) as f:
-        for line in tqdm(f):
-            tokens = line.split(" ")
-            for token in tokens:
-                if token in vocabulary:
-                    vocabulary[token] += 1
-                else:
-                    vocabulary[token] = 1
-    temp = [] # extract top words
-    for word in vocabulary:
-        temp.append([vocabulary[word] , word])
-    temp.sort(reverse = True)
-    temp = temp[:conf.top_words]
-    return [word[1] for word in temp]
+'''
+ACHTUNG!
+Each entry in `labels` must be an index in `[0, num_classes)`. Other values will raise an
+exception when this op is run on CPU, and return `NaN` for corresponding
+loss and gradient rows on GPU.
+'''
 
-def model():    
-    input = tf.placeholder(tf.float32, [None, 
-        conf.seq_length, conf.embed_size], name = "input")
-    
-    
-    U = tf.get_variable("U", shape=[conf.embed_size, conf.num_hidden_state], 
-        initializer=tf.contrib.layers.xavier_initializer())
-    V = 
-    B = tf.get_variable("B", shape=[conf.vocab_size], 
-        initializer=tf.contrib.layers.xavier_initializer())
-    
-    
-    
-    cell = tf.contrib.rnn.LSTMCell(conf.num_hidden_state)
+# Input placeholders
+data = tf.placeholder(tf.int32, [conf.batch_size, conf.seq_length - 1, 1], "sentences")
+next_word = tf.placeholder(tf.int32, [conf.batch_size, conf.seq_length - 1, 1], "next_word")
+
+# LSTM Matrices
+embedding_matrix = tf.get_variable("embed", [conf.vocab_size, conf.embed_size], 
+                    tf.float32, initializer=xavier_initializer())
+output_matrix = tf.get_variable("output", [conf.num_hidden_state, conf.vocab_size], 
+                    tf.float32, initializer=xavier_initializer())
+output_bias = tf.get_variable("bias", [conf.vocab_size], 
+                    tf.float32, initializer=xavier_initializer())
+
+# embedding lookup
+word_embeddings = tf.nn.embedding_lookup(embedding_matrix, data) # shape: (64, 29, 1, 100)
+word_embeddings = tf.reshape(word_embeddings, [conf.batch_size, conf.seq_length -1, conf.embed_size]) #shape: (64, 29, 100)
+assert word_embeddings.shape == (conf.batch_size, conf.seq_length - 1, conf.embed_size)
+
+# RNN unrolling
+predictions = []
+with tf.variable_scope("rnn") as scope:
+    cell = LSTMCell(conf.num_hidden_state)
     state = cell.zero_state(conf.batch_size, tf.float32)
+    for i in range(conf.seq_length - 1):
+        if i > 0:
+            scope.reuse_variables()
+        lstm_output, state = cell(word_embeddings[:, i, :], state)
+        prediction = tf.matmul(lstm_output, output_matrix) + output_bias
+        predictions.append(prediction)
 
-    Y_preds = []
+# stack the outputs together
+predictions = tf.stack(predictions, axis = 1)
+assert predictions.shape == (conf.batch_size, conf.seq_length - 1, conf.vocab_size)
 
-    with tf.variable_scope("myrnn") as scope: # http://stackoverflow.com/questions/36941382/tensorflow-shared-variables-error-with-simple-lstm-network
-        for i in range(conf.seq_length):
-            if i > 0:
-                scope.reuse_variables() 
-            interim, state = cell(input[:,i,:], state) #TODO, inputs? need to feed the ground truth, not our result
-            Y_logits = tf.matmul(interim, ) + B
-            Y_pred = tf.nn.softmax(Y_logits)
-            Y_preds.append(Y_pred)
+# reshape the logits and labels
+predictions = tf.reshape(predictions, [conf.batch_size * (conf.seq_length - 1), conf.vocab_size])
+labels = tf.reshape(next_word, [ conf.batch_size * (conf.seq_length - 1)])
 
-def main():
-    vocabulary = gen_top_words(filename)
-    
+# Average Cross Entropy loss
+loss = tf.reduce_mean(
+        tf.nn.sparse_softmax_cross_entropy_with_logits(logits = predictions, labels = labels))
+
+#training
+adam = tf.train.AdamOptimizer(conf.lr)
+gradients, variables = zip(*adam.compute_gradients(loss))
+gradients, _ = tf.clip_by_global_norm(gradients, 10.0)
+train_step = adam.apply_gradients(zip(gradients, variables))
+
+# preprocessing
+with open()
 
 
-if __name__ == '__main__':
-    # TODO: parsing
-    if not tf.__version__.startswith("1.0"):
-        print "WARN: Tensorflow version less than 1.0, errors might arise due to API issues"        
-    main()
+# training
+with tf.Session() as sess:
+    sess.run(tf.global_variables_initializer())

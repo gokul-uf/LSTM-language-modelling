@@ -5,4 +5,4 @@ class Config:
 	num_hidden_state = 512
 	seq_length = 30
 	top_words = 20000 - 4
-	lr = 10
+	lr = 0.001
