@@ -1,5 +1,7 @@
 from config import Config as conf
 from tqdm import tqdm
+import numpy as np
+import cPickle as pkl
 
 class preprocessor:
 	tokens = {}
@@ -7,14 +9,47 @@ class preprocessor:
 	word2idx = {}
 	idx2word = {}
 	lines = []
+	preprocessed_data = []
+	loaded = False
+
+	def __init__(self, dir_name = None):
+		if dir_name == None:
+			self.tokens = {}
+			self.top_20k = []
+			self.word2idx = {}
+			self.idx2word = {}
+			self.lines = []
+			self.preprocessed_data = []
+			self.loaded = False
+		else:
+			self.tokens = {}
+			self.top_20k =  pkl.load(open(dir_name+"/top_20k.pkl"))
+			self.word2idx = pkl.load(open(dir_name+"/word2idx.pkl"))
+			self.idx2word = pkl.load(open(dir_name+"/idx2word.pkl"))
+			self.lines =    pkl.load(open(dir_name+"/lines.pkl"))
+			self.preprocessed_data = lines
+			self.loaded = True
 
 	def preprocess(self, filename):
-		print "reading file"
-		self.extract_tokens(filename)
-		print "extracting top 20k words"
-		self.get_top20k()
-		print "creating word to ID mapping"
-		self.create_mapping()
+		if not self.loaded:
+			print "Reading file"
+			self.extract_tokens(filename)
+			print "Extracting top 20k words"
+			self.get_top20k()
+			del self.tokens
+			print "Creating word to ID mapping"
+			self.create_mapping()
+			print "Dumping the pkl files"
+			print "Dumping top_20k"
+			pkl.dump(self.top_20k, open("top_20k.pkl", "w"))
+			print "Dumping word2idx"
+			pkl.dump(self.word2idx, open("word2idx.pkl", "w"))
+			print "Dumping idx2word"
+			pkl.dump(self.idx2word, open("idx2word.pkl", "w"))
+			# print "Dumping lines"
+			# pkl.dump(self.lines, open("lines.pkl", "w"))
+		else:
+			print "All loaded, nothing to do!"
 
 	def extract_tokens(self, filename):
 		self.tokens = {}
@@ -29,7 +64,7 @@ class preprocessor:
 					overflow_lines+=1
 					continue
 				else:
-					self.lines.append(line)
+					self.lines.append(words)
 					for word in words:
 						if word in self.tokens:
 							self.tokens[word] += 1
@@ -49,3 +84,31 @@ class preprocessor:
 		for idx, word in enumerate(self.top_20k):
 			self.word2idx[word] = idx
 			self.idx2word[idx] = word
+
+	def lines2idx(self):
+		for i in tqdm(xrange(len(self.lines))):
+			line = self.lines[i]
+			if len(line) < 28:
+				line = line + ["<pad>"]*(28 - len(line))
+			line = ["<bos>"] + line + ["<eos>"]
+			assert len(line) == 30
+			line = [[self.word2idx.get(word, self.word2idx["<unk>"])] for word in line]
+			self.lines[i] = line
+		self.preprocessed_data = self.lines
+
+	def get_batch(self):
+		np.random.shuffle(self.lines)
+		for i in range(0, len(self.lines), conf.batch_size):
+			new_batch = []
+			batch = self.lines[i: i+64]
+			for line in batch:
+				if len(line) < 28:
+					line = line + ["<pad>"]*(28 - len(line))
+				line = ["<bos>"] + line + ["<eos>"]
+				assert len(line) == 30
+				line = [[self.word2idx.get(word, self.word2idx["<unk>"])] for word in line]
+				new_batch.append(line)
+			batch = new_batch
+			batch = np.asarray(batch)
+			assert batch.shape == (64, 30, 1)
+			yield batch[:, :-1,:], batch[:, 1:, :]
