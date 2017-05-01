@@ -87,5 +87,5 @@ with tf.Session(config=config) as sess:
            assert label_batch.shape == (64, 29, 1)
            _, curr_loss = sess.run([train_step, loss], feed_dict = {data: data_batch, next_word: label_batch})
            epoch_loss += curr_loss
-        print("Average Loss: {}".format(epoch_loss / (len(preproc.lines)/64)))
+        print("Average Loss: {}".format(epoch_loss / (len(preproc.lines) * 64)))
 
