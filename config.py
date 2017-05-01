@@ -9,4 +9,5 @@ class Config:
     num_epochs = 20
     pkl_dir = "pkls"
     ckpt_dir = "checkpoints"
-    mode = "train" # could be "train" or "test"
+    mode = "TEST" # could be "TRAIN" or "TEST"
+    ckpt_file = ""

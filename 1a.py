@@ -75,16 +75,27 @@ if not os.path.exists(conf.ckpt_dir):
     os.makedirs(conf.ckpt_dir)
 saver = tf.train.Saver()
 with tf.Session(config=config) as sess:
-    sess.run(tf.global_variables_initializer())
-    for i in range(conf.num_epochs):
-        epoch_loss = 0
-        print("epoch {}".format(i))
-        for data_batch, label_batch in tqdm(preproc.get_batch(), total = len(preproc.lines) / 64):
-           assert data_batch.shape == (64, 29, 1)
-           assert label_batch.shape == (64, 29, 1)
-           _, curr_loss = sess.run([train_step, loss], feed_dict = 
-                               {data: data_batch, next_word: label_batch})
-           epoch_loss += curr_loss
-        print("Average Loss: {}".format(epoch_loss / (len(preproc.lines) * 64)))
-        save_path = saver.save(sess, "{}/epoch_{}.ckpt".format(conf.ckpt_dir, i))
-        print("Model saved in: {}".format(save_path))
+    if conf.mode == "TRAIN":
+        print("Mode set to TRAIN")
+        sess.run(tf.global_variables_initializer())
+        for i in range(conf.num_epochs):
+            epoch_loss = 0
+            print("epoch {}".format(i))
+            for data_batch, label_batch in tqdm(preproc.get_batch(), total = len(preproc.lines) / 64):
+               assert data_batch.shape == (64, 29, 1)
+               assert label_batch.shape == (64, 29, 1)
+               _, curr_loss = sess.run([train_step, loss], feed_dict =
+                                   {data: data_batch, next_word: label_batch})
+               epoch_loss += curr_loss
+            print("Average Loss: {}".format(epoch_loss / (len(preproc.lines) * 64)))
+            save_path = saver.save(sess, "{}/epoch_{}.ckpt".format(conf.ckpt_dir, i))
+            print("Model saved in: {}".format(save_path))
+    elif conf.mode == "TEST":
+        print("Mode set to TEST")
+        if conf.ckpt_file == '':
+            print('''conf.ckpt_file is not set,
+                set to the ckpt file in {} folder you want to load'''.format(conf.ckpt_dir))
+        print("Loading Model")
+        saver.restore(sess, conf.ckpt_dir + conf.ckpt_file)
+    else:
+        print("ERROR: unknown mode '{}', needs to be 'TRAIN' or 'TEST'".format(conf.mode))
