@@ -7,6 +7,13 @@ from tensorflow.contrib.layers import xavier_initializer
 from tensorflow.contrib.rnn import LSTMCell
 
 '''
+TODO:
+1. saving the model
+2. calculate perplexity
+3. load custom embeddings
+'''
+
+'''
 ACHTUNG!
 Each entry in `labels` must be an index in `[0, num_classes)`. Other values will raise an
 exception when this op is run on CPU, and return `NaN` for corresponding
@@ -31,7 +38,7 @@ word_embeddings = tf.reshape(word_embeddings, [conf.batch_size, conf.seq_length 
 assert word_embeddings.shape == (conf.batch_size, conf.seq_length - 1, conf.embed_size)
 
 # RNN unrolling
-print "creating RNN"
+print("creating RNN")
 predictions = []
 with tf.variable_scope("rnn") as scope:
     cell = LSTMCell(conf.num_hidden_state)
@@ -62,23 +69,23 @@ gradients, _ = tf.clip_by_global_norm(gradients, 10.0)
 train_step = adam.apply_gradients(zip(gradients, variables))
 
 # preprocessing
-print "Starting preprocessing"
+print("Starting preprocessing")
 preproc = preprocessor()
 preproc.preprocess("data/sentences.train")
 
 # training
-print "Start training"
+print("Start training")
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 with tf.Session(config=config) as sess:
     sess.run(tf.global_variables_initializer())
     for i in range(conf.num_epochs):
         epoch_loss = 0
-        print "epoch {}".format(i)
+        print("epoch {}".format(i))
         for data_batch, label_batch in tqdm(preproc.get_batch(), total = len(preproc.lines) / 64):
            assert data_batch.shape == (64, 29, 1)
            assert label_batch.shape == (64, 29, 1)
            _, curr_loss = sess.run([train_step, loss], feed_dict = {data: data_batch, next_word: label_batch})
            epoch_loss += curr_loss
-        print "Average Loss: {}".format(epoch_loss / (len(preproc.lines)/64))
+        print("Average Loss: {}".format(epoch_loss / (len(preproc.lines)/64)))
 
