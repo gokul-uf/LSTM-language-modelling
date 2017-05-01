@@ -87,7 +87,7 @@ with tf.Session(config=config) as sess:
                _, curr_loss = sess.run([train_step, loss], feed_dict =
                                    {data: data_batch, next_word: label_batch})
                epoch_loss += curr_loss
-            print("Average Loss: {}".format(epoch_loss * 64 / (len(preproc.lines))))
+            print("Average word-level Loss: {}".format(epoch_loss / (64 * 29 * (len(preproc.lines) / 64))))
             save_path = saver.save(sess, "{}/epoch_{}.ckpt".format(conf.ckpt_dir, i))
             print("Model saved in: {}".format(save_path))
     elif conf.mode == "TEST":
