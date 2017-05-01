@@ -52,7 +52,7 @@ predictions = tf.reshape(predictions, [conf.batch_size * (conf.seq_length - 1), 
 labels = tf.reshape(next_word, [ conf.batch_size * (conf.seq_length - 1)])
 
 # Average Cross Entropy loss
-loss = tf.reduce_mean(
+loss = tf.reduce_sum(
         tf.nn.sparse_softmax_cross_entropy_with_logits(logits = predictions, labels = labels))
 
 #training
@@ -77,5 +77,6 @@ with tf.Session(config=config) as sess:
         for data_batch, label_batch in tqdm(preproc.get_batch(), total = len(preproc.lines) / 64):
            assert data_batch.shape == (64, 29, 1)
            assert label_batch.shape == (64, 29, 1)
-           print sess.run(train_step, feed_dict = {data: data_batch, next_word: label_batch})
+           _, curr_loss = sess.run([train_step, loss], feed_dict = {data: data_batch, next_word: label_batch})
+           print curr_loss
 
