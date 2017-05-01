@@ -66,7 +66,7 @@ class preprocessor:
         with open(filename) as f:
             for line in tqdm(f, total = 2000000):
                 total_lines+=1
-                words = line.split(" ")
+                words = line.strip().split(" ")
                 if len(words) > 28:
                     overflow_lines+=1
                     continue
@@ -103,12 +103,21 @@ class preprocessor:
             self.lines[i] = line
         self.preprocessed_data = self.lines
 
-    def get_batch(self):
-        np.random.shuffle(self.lines)
-        for i in range(0, 64 * (len(self.lines) // 64), conf.batch_size):
+    def get_batch(self, filename = None):
+        if filename == None:
+            lines = self.lines
+        else:
+            lines = []
+            with open(filename) as f:
+                for line in f:
+                    lines.append(line.strip().split(" "))
+        np.random.shuffle(lines)
+        for i in range(0, 64 * (len(lines) // 64), conf.batch_size):
             new_batch = []
-            batch = self.lines[i: i+64]
+            batch = lines[i: i+64]
             for line in batch:
+                if len(line) > 28:
+                    continue
                 if len(line) < 28:
                     line = line + ["<pad>"]*(28 - len(line))
                 line = ["<bos>"] + line + ["<eos>"]
@@ -118,6 +127,6 @@ class preprocessor:
             batch = new_batch
             batch = np.asarray(batch)
             if batch.shape != (64, 30, 1):
-                print(len(self.lines))
+                print(len(lines))
             assert batch.shape == (64, 30, 1)
             yield batch[:, :-1,:], batch[:, 1:, :]
