@@ -2,7 +2,7 @@ from config import Config as conf
 from tqdm import tqdm
 import numpy as np
 import sys
-if sys.version.split()[0].startsiwth("2"): #Python2
+if sys.version.split()[0].startswith("2"): #Python2
 	import cPickle as pkl
 else:
 	import pickle as pkl
