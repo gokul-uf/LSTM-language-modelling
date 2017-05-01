@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from tqdm import tqdm
+import os
 from config import Config as conf
 from preprocess import preprocessor
 from tensorflow.contrib.layers import xavier_initializer
@@ -85,5 +86,5 @@ with tf.Session(config=config) as sess:
                                {data: data_batch, next_word: label_batch})
            epoch_loss += curr_loss
         print("Average Loss: {}".format(epoch_loss / (len(preproc.lines) * 64)))
-        save_path = saver.save(sess, "{}/epoch_{}.ckpt".format(conf.ckpt_dir, i+1))
+        save_path = saver.save(sess, "{}/epoch_{}.ckpt".format(conf.ckpt_dir, i))
         print("Model saved in: {}".format(save_path))
