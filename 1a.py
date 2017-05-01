@@ -8,16 +8,9 @@ from tensorflow.contrib.rnn import LSTMCell
 
 '''
 TODO:
-1. saving the model
+1. saving the model DONE
 2. calculate perplexity
 3. load custom embeddings
-'''
-
-'''
-ACHTUNG!
-Each entry in `labels` must be an index in `[0, num_classes)`. Other values will raise an
-exception when this op is run on CPU, and return `NaN` for corresponding
-loss and gradient rows on GPU.
 '''
 
 # Input placeholders
@@ -39,7 +32,7 @@ assert word_embeddings.shape == (conf.batch_size, conf.seq_length - 1, conf.embe
 
 # RNN unrolling
 print("creating RNN")
-predictions = []
+lstm_outputs = []
 with tf.variable_scope("rnn") as scope:
     cell = LSTMCell(conf.num_hidden_state)
     state = cell.zero_state(conf.batch_size, tf.float32)
@@ -47,16 +40,16 @@ with tf.variable_scope("rnn") as scope:
         if i > 0:
             scope.reuse_variables()
         lstm_output, state = cell(word_embeddings[:, i, :], state)
-        prediction = tf.matmul(lstm_output, output_matrix) + output_bias
-        predictions.append(prediction)
+        lstm_outputs.append(lstm_output)
 
-# stack the outputs together
-predictions = tf.stack(predictions, axis = 1)
-assert predictions.shape == (conf.batch_size, conf.seq_length - 1, conf.vocab_size)
+# stack the outputs together, reshape, multiply
+lstm_outputs = tf.stack(lstm_outputs, axis = 1)
+lstm_outputs = tf.reshape(lstm_outputs, [conf.batch_size * (conf.seq_length - 1), conf.num_hidden_state])
+assert lstm_outputs.shape == (conf.batch_size * (conf.seq_length - 1), conf.num_hidden_state)
+predictions = tf.matmul(lstm_outputs, output_matrix) + output_bias
 
-# reshape the logits and labels
-predictions = tf.reshape(predictions, [conf.batch_size * (conf.seq_length - 1), conf.vocab_size])
-labels = tf.reshape(next_word, [ conf.batch_size * (conf.seq_length - 1)])
+# reshape the labels
+labels = tf.reshape(next_word, [conf.batch_size * (conf.seq_length - 1)])
 
 # Average Cross Entropy loss
 loss = tf.reduce_sum(
@@ -77,6 +70,9 @@ preproc.preprocess("data/sentences.train")
 print("Start training")
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
+if not os.path.exists(conf.ckpt_dir):
+    os.makedirs(conf.ckpt_dir)
+saver = tf.train.Saver()
 with tf.Session(config=config) as sess:
     sess.run(tf.global_variables_initializer())
     for i in range(conf.num_epochs):
@@ -85,7 +81,9 @@ with tf.Session(config=config) as sess:
         for data_batch, label_batch in tqdm(preproc.get_batch(), total = len(preproc.lines) / 64):
            assert data_batch.shape == (64, 29, 1)
            assert label_batch.shape == (64, 29, 1)
-           _, curr_loss = sess.run([train_step, loss], feed_dict = {data: data_batch, next_word: label_batch})
+           _, curr_loss = sess.run([train_step, loss], feed_dict = 
+                               {data: data_batch, next_word: label_batch})
            epoch_loss += curr_loss
         print("Average Loss: {}".format(epoch_loss / (len(preproc.lines) * 64)))
-
+        save_path = saver.save(sess, "{}/epoch_{}.ckpt".format(conf.ckpt_dir, i+1))
+        print("Model saved in: {}".format(save_path))
