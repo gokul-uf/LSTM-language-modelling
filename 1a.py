@@ -15,8 +15,8 @@ TODO:
 '''
 
 # Input placeholders
-data = tf.placeholder(tf.int32, [conf.batch_size, conf.seq_length - 1, 1], "sentences")
-next_word = tf.placeholder(tf.int32, [conf.batch_size, conf.seq_length - 1, 1], "next_word")
+data = tf.placeholder(tf.int32, [None, conf.seq_length - 1, 1], "sentences")
+next_word = tf.placeholder(tf.int32, [None, conf.seq_length - 1, 1], "next_word")
 
 # LSTM Matrices
 embedding_matrix = tf.get_variable("embed", [conf.vocab_size, conf.embed_size], 
@@ -52,9 +52,9 @@ predictions = tf.matmul(lstm_outputs, output_matrix) + output_bias
 # reshape the labels
 labels = tf.reshape(next_word, [conf.batch_size * (conf.seq_length - 1)])
 
-# Average Cross Entropy loss
-loss = tf.reduce_sum(
-        tf.nn.sparse_softmax_cross_entropy_with_logits(logits = predictions, labels = labels))
+# Average Cross Entropy loss, compute CE separately to use in testing
+cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits = predictions, labels = labels)
+loss = tf.reduce_sum(cross_entropy)
 
 #training
 adam = tf.train.AdamOptimizer(conf.lr)
@@ -87,7 +87,7 @@ with tf.Session(config=config) as sess:
                _, curr_loss = sess.run([train_step, loss], feed_dict =
                                    {data: data_batch, next_word: label_batch})
                epoch_loss += curr_loss
-            print("Average Loss: {}".format(epoch_loss / (len(preproc.lines) * 64)))
+            print("Average Loss: {}".format(epoch_loss * 64 / (len(preproc.lines))))
             save_path = saver.save(sess, "{}/epoch_{}.ckpt".format(conf.ckpt_dir, i))
             print("Model saved in: {}".format(save_path))
     elif conf.mode == "TEST":
@@ -97,5 +97,12 @@ with tf.Session(config=config) as sess:
                 set to the ckpt file in {} folder you want to load'''.format(conf.ckpt_dir))
         print("Loading Model")
         saver.restore(sess, conf.ckpt_dir + conf.ckpt_file)
+        for data_batch, label_batch in preproc.get_batch(conf.test_file):
+           assert data_batch.shape == (64, 29, 1)
+           assert label_batch.shape == (64, 29, 1)
+           ce = sess.run(cross_entropy, feed_dict = {data: data_batch, next_word: label_batch})
+           print ce.shape
+           # TODO: compute the perplexity here
+            
     else:
         print("ERROR: unknown mode '{}', needs to be 'TRAIN' or 'TEST'".format(conf.mode))
