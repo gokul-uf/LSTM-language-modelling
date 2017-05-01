@@ -1,7 +1,11 @@
 from config import Config as conf
 from tqdm import tqdm
 import numpy as np
-import cPickle as pkl
+import sys
+if sys.version.split()[0].startsiwth("2"): #Python2
+	import cPickle as pkl
+else:
+	import pickle as pkl
 
 class preprocessor:
 	tokens = {}
@@ -41,11 +45,11 @@ class preprocessor:
 			self.create_mapping()
 			print("Dumping the pkl files")
 			print("Dumping top_20k")
-			pkl.dump(self.top_20k, open("top_20k.pkl", "w"))
+			pkl.dump(self.top_20k, open("top_20k.pkl", "wb"))
 			print("Dumping word2idx")
-			pkl.dump(self.word2idx, open("word2idx.pkl", "w"))
+			pkl.dump(self.word2idx, open("word2idx.pkl", "wb"))
 			print("Dumping idx2word")
-			pkl.dump(self.idx2word, open("idx2word.pkl", "w"))
+			pkl.dump(self.idx2word, open("idx2word.pkl", "wb"))
 			# print "Dumping lines"
 			# pkl.dump(self.lines, open("lines.pkl", "w"))
 		else:
