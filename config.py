@@ -11,3 +11,4 @@ class Config:
     ckpt_dir = "checkpoints"
     mode = "TEST" # could be "TRAIN" or "TEST"
     ckpt_file = ""
+    test_flie = "data/sentences.eval"
