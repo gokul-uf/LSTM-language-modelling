@@ -32,24 +32,24 @@ class preprocessor:
 
 	def preprocess(self, filename):
 		if not self.loaded:
-			print "Reading file"
+			print("Reading file")
 			self.extract_tokens(filename)
-			print "Extracting top 20k words"
+			print("Extracting top 20k words")
 			self.get_top20k()
 			del self.tokens
-			print "Creating word to ID mapping"
+			print("Creating word to ID mapping")
 			self.create_mapping()
-			print "Dumping the pkl files"
-			print "Dumping top_20k"
+			print("Dumping the pkl files")
+			print("Dumping top_20k")
 			pkl.dump(self.top_20k, open("top_20k.pkl", "w"))
-			print "Dumping word2idx"
+			print("Dumping word2idx")
 			pkl.dump(self.word2idx, open("word2idx.pkl", "w"))
-			print "Dumping idx2word"
+			print("Dumping idx2word")
 			pkl.dump(self.idx2word, open("idx2word.pkl", "w"))
 			# print "Dumping lines"
 			# pkl.dump(self.lines, open("lines.pkl", "w"))
 		else:
-			print "All loaded, nothing to do!"
+			print("All loaded, nothing to do!")
 
 	def extract_tokens(self, filename):
 		self.tokens = {}
@@ -71,8 +71,8 @@ class preprocessor:
 						else:
 							self.tokens[word] = 1
 			assert len(self.lines) + overflow_lines == total_lines
-			print "total lines: {}".format(total_lines)
-			print "overflow lines ( > 28 words): {}".format(overflow_lines)
+			print("total lines: {}".format(total_lines))
+			print("overflow lines ( > 28 words): {}".format(overflow_lines))
 
 	def get_top20k(self):
 		top_words = sorted(self.tokens, key = self.tokens.get, reverse = True)[:conf.top_words]
@@ -98,7 +98,7 @@ class preprocessor:
 
 	def get_batch(self):
 		np.random.shuffle(self.lines)
-		for i in range(0, len(self.lines), conf.batch_size):
+		for i in range(0, 64 * (len(self.lines) // 64), conf.batch_size):
 			new_batch = []
 			batch = self.lines[i: i+64]
 			for line in batch:
@@ -110,5 +110,7 @@ class preprocessor:
 				new_batch.append(line)
 			batch = new_batch
 			batch = np.asarray(batch)
+			if batch.shape != (64, 30, 1):
+				print(len(self.lines))
 			assert batch.shape == (64, 30, 1)
 			yield batch[:, :-1,:], batch[:, 1:, :]
