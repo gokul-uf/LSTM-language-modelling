@@ -115,6 +115,6 @@ with tf.Session(config=config) as sess:
                     if preproc.idx2word[data_batch[i][j]] != "<pad>":
                         line_cross_entropy += ce[i][j]
                         num_words += 1
-                print np.power(2, line_cross_entropy / num_words)
+                print(np.power(2, line_cross_entropy / num_words))
     else:
         print("ERROR: unknown mode '{}', needs to be 'TRAIN' or 'TEST'".format(conf.mode))

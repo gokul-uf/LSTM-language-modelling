@@ -10,7 +10,7 @@ from tensorflow.contrib.rnn import LSTMCell
 '''
 TODO:
 1. saving the model DONE
-2. calculate perplexity DONE
+2. calculate perplexity
 3. load custom embeddings
 '''
 
@@ -21,9 +21,11 @@ next_word = tf.placeholder(tf.int32, [None, conf.seq_length - 1, 1], "next_word"
 # LSTM Matrices
 embedding_matrix = tf.get_variable("embed", [conf.vocab_size, conf.embed_size], 
                     tf.float32, initializer=xavier_initializer())
-output_matrix = tf.get_variable("output", [conf.num_hidden_state, conf.vocab_size], 
+output_matrix = tf.get_variable("output", [conf.proj_hidden_state, conf.vocab_size], 
                     tf.float32, initializer=xavier_initializer())
 output_bias = tf.get_variable("bias", [conf.vocab_size], 
+                    tf.float32, initializer=xavier_initializer())
+projection_matrix = tf.get_variable("projection", [conf.num_hidden_state, conf.proj_hidden_state], 
                     tf.float32, initializer=xavier_initializer())
 
 # embedding lookup
@@ -43,11 +45,13 @@ with tf.variable_scope("rnn") as scope:
         lstm_output, state = cell(word_embeddings[:, i, :], state)
         lstm_outputs.append(lstm_output)
 
-# stack the outputs together, reshape, multiply
+# stack the outputs together, reshape, project, multiply
 lstm_outputs = tf.stack(lstm_outputs, axis = 1)
 lstm_outputs = tf.reshape(lstm_outputs, [conf.batch_size * (conf.seq_length - 1), conf.num_hidden_state])
 assert lstm_outputs.shape == (conf.batch_size * (conf.seq_length - 1), conf.num_hidden_state)
+lstm_outputs = tf.matmul(lstm_outputs, projection_matrix)
 predictions = tf.matmul(lstm_outputs, output_matrix) + output_bias
+
 
 # reshape the labels
 labels = tf.reshape(next_word, [conf.batch_size * (conf.seq_length - 1)])
@@ -74,7 +78,6 @@ config.gpu_options.allow_growth = True
 if not os.path.exists(conf.ckpt_dir):
     os.makedirs(conf.ckpt_dir)
 saver = tf.train.Saver()
-
 with tf.Session(config=config) as sess:
     if conf.mode == "TRAIN":
         print("Mode set to TRAIN")
@@ -91,12 +94,11 @@ with tf.Session(config=config) as sess:
             print("Average word-level Loss: {}".format(epoch_loss / (64 * 29 * (len(preproc.lines) / 64))))
             save_path = saver.save(sess, "{}/epoch_{}.ckpt".format(conf.ckpt_dir, i))
             print("Model saved in: {}".format(save_path))
-
     elif conf.mode == "TEST":
         print("Mode set to TEST")
         if conf.ckpt_file == '':
             print('''conf.ckpt_file is not set,
-                set it to the ckpt file in {} folder you want to load'''.format(conf.ckpt_dir))
+                set to the ckpt file in {} folder you want to load'''.format(conf.ckpt_dir))
         print("Loading Model")
         saver.restore(sess, conf.ckpt_dir + conf.ckpt_file)
         for data_batch, label_batch in preproc.get_batch(conf.test_file):
@@ -109,9 +111,7 @@ with tf.Session(config=config) as sess:
                 line_cross_entropy = 0
                 num_words = 0
                 for j in range(conf.seq_length - 1):
-                    if preproc.idx2word[data_batch[i][j]] != "<pad>":
-                        line_cross_entropy += ce[i][j]
-                        num_words += 1
-                print(np.power(2, line_cross_entropy / num_words))
+                    # TODO: compute the perplexity here
+                    pass
     else:
         print("ERROR: unknown mode '{}', needs to be 'TRAIN' or 'TEST'".format(conf.mode))
