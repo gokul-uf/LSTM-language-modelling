@@ -119,8 +119,8 @@ class preprocessor:
                 if len(line) > 28:
                     continue
                 line = ["<bos>"] + line + ["<eos>"]
-                if len(line) < 28:
-                    line = line + ["<pad>"]*(28 - len(line))
+                if len(line) < 30:
+                    line = line + ["<pad>"]*(30 - len(line))
                 assert len(line) == 30
                 line = [[self.word2idx.get(word, self.word2idx["<unk>"])] for word in line]
                 new_batch.append(line)
