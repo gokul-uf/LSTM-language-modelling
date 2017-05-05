@@ -10,7 +10,7 @@ from tensorflow.contrib.rnn import LSTMCell
 '''
 TODO:
 1. saving the model DONE
-2. calculate perplexity DONE
+2. calculate perplexity 
 3. load custom embeddings
 '''
 
@@ -51,6 +51,9 @@ predictions = tf.matmul(lstm_outputs, output_matrix) + output_bias
 
 # reshape the labels
 labels = tf.reshape(next_word, [conf.batch_size * (conf.seq_length - 1)])
+
+# softmax for computing the perplexity later on, not used elsewhere
+softmax = tf.nn.softmax(predictions)
 
 # Average Cross Entropy loss, compute CE separately to use in testing
 cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits = predictions, labels = labels)
@@ -112,6 +115,6 @@ with tf.Session(config=config) as sess:
                     if preproc.idx2word[data_batch[i][j]] != "<pad>":
                         line_cross_entropy += ce[i][j]
                         num_words += 1
-                print(np.power(2, line_cross_entropy / num_words))
+                print(np.power(2, line_cross_entropy / num_words)) #TODO, change
     else:
         print("ERROR: unknown mode '{}', needs to be 'TRAIN' or 'TEST'".format(conf.mode))
