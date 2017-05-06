@@ -110,7 +110,7 @@ with tf.Session(config=config) as sess:
                 line = soft_max[i, :, :]
                 assert line.shape == (29, 20000)
                 j = 0
-                while(preproc.idx2word[data_batch[i, j, 0]] != '<eos>' and j < (conf.seq_length - 1)):
+                while(j < (conf.seq_length - 1) and preproc.idx2word[data_batch[i, j, 0]] != '<eos>'):
                     ground_truth_idx = label_batch[i, j, 0]
                     line_softmax.append(line[j, ground_truth_idx])
                     j += 1
