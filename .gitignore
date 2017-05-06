@@ -1,2 +1,4 @@
 data/*
+pkls/*
+checkpoints/*
 *.pyc
