@@ -103,7 +103,7 @@ with tf.Session(config=config) as sess:
             assert label_batch.shape == (64, 29, 1)
             soft_max = sess.run(softmax, feed_dict = {data: data_batch})
             soft_max = np.asarray(soft_max)
-            soft_max.reshape(conf.batch_size, (conf.seq_length - 1))
+            soft_max.reshape(conf.batch_size, (conf.seq_length - 1), conf.vocab_size)
             for i in range(conf.batch_size):
                 line_softmax = []
                 line = soft_max[i, :]
