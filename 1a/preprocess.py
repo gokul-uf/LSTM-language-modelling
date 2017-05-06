@@ -55,8 +55,6 @@ class preprocessor:
             pkl.dump(self.word2idx, open(conf.pkl_dir + "/word2idx.pkl", "wb"))
             print("Dumping idx2word")
             pkl.dump(self.idx2word, open(conf.pkl_dir + "/idx2word.pkl", "wb"))
-            # print "Dumping lines"
-            # pkl.dump(self.lines, open("lines.pkl", "w"))
         else:
             print("All loaded, nothing to do!")
 
@@ -94,17 +92,6 @@ class preprocessor:
             self.word2idx[word] = idx
             self.idx2word[idx] = word
 
-    def lines2idx(self):
-        for i in tqdm(xrange(len(self.lines))):
-            line = self.lines[i]
-            if len(line) < 28:
-                line = line + ["<pad>"]*(28 - len(line))
-            line = ["<bos>"] + line + ["<eos>"]
-            assert len(line) == 30
-            line = [[self.word2idx.get(word, self.word2idx["<unk>"])] for word in line]
-            self.lines[i] = line
-        self.preprocessed_data = self.lines
-
     def get_batch(self, filename = None):
         if filename == None:
             lines = self.lines
@@ -114,12 +101,11 @@ class preprocessor:
             with open(filename) as f:
                 for line in f:
                     lines.append(line.strip().split(" "))
-        for i in range(0, 64 * (len(lines) // 64), conf.batch_size):
+        for i in range(0, conf.batch_size * (len(lines) // conf.batch_size), conf.batch_size):
             new_batch = []
             batch = lines[i: i+64]
             for line in batch:
-                if len(line) > 28:
-                    continue
+                assert len(line) <= 28
                 line = ["<bos>"] + line + ["<eos>"]
                 if len(line) < 30:
                     line = line + ["<pad>"]*(30 - len(line))
@@ -129,9 +115,9 @@ class preprocessor:
             batch = new_batch
             batch = np.asarray(batch)
             if batch.shape != (64, 30, 1):
-                print(len(lines))
-            assert batch.shape == (64, 30, 1)
-            yield batch[:, :-1,:], batch[:, 1:, :]
+                print("Residual batch with {} lines instead of conf.batch_size == {}. ".format(len(lines), conf.batch_size))
+            #assert batch.shape == (64, 30, 1)
+            yield batch[:, :-1,:], batch[:, 1:, :] # RNN input and output word sequences (input words excluding last sentence word, output words excluding first sentence word)
 
     def load_embedding(self, session, emb, dim_embedding = conf.embed_size,
         path = conf.word2vec_path):
@@ -150,6 +136,6 @@ class preprocessor:
 
         print("{} words out of {} could be loaded".format(matches, conf.vocab_size))
 
-        pretrained_embeddings = tf.placeholder(tf.float32, [None, None])
+        pretrained_embeddings = tf.placeholder(tf.float32, [conf.vocab_size, dim_embedding])
         assign_op = emb.assign(pretrained_embeddings)
         session.run(assign_op, {pretrained_embeddings: external_embedding})
