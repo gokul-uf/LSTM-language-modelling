@@ -13,4 +13,4 @@ class Config:
     mode = "TRAIN" # could be "TRAIN" or "TEST"
     ckpt_file = ""
     word2vec_path = "../wordembeddings-dim100.word2vec"
-    test_file = "../data/sentences.eval"
+    test_file = "../data/sentences_test"
