@@ -100,9 +100,9 @@ with tf.Session(config=config) as sess:
             cross_entropies = cross_entropies.reshape(conf.batch_size, (conf.seq_length - 1), conf.vocab_size)
             assert cross_entropies.shape == (conf.batch_size, (conf.seq_length - 1), conf.vocab_size)
             for sentence_id in range(conf.batch_size):
-                sentence_cross_entropies = []
+                sentence_cross_entropies = [0] # initial <bos> has likelihood 1
                 for word_pos in range(conf.seq_length - 1):
-                    if preproc.idx2word[data_batch[sentence_id, word_pos, 0]] == '<pad>':
+                    if preproc.idx2word[data_batch[sentence_id, word_pos, 0]] == '<eos>':
                         break
                     ground_truth_id = label_batch[sentence_id, word_pos, 0]
                     sentence_cross_entropies.append( cross_entropies[ sentence_id, word_pos, ground_truth_id ] )
