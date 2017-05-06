@@ -52,9 +52,9 @@ class preprocessor:
             print("Dumping top_20k")
             pkl.dump(self.top_20k, open(conf.pkl_dir + "/top_20k.pkl", "wb"))
             print("Dumping word2idx")
-            pkl.dump(self.word2idx, open(conf.pkl_dir + "word2idx.pkl", "wb"))
+            pkl.dump(self.word2idx, open(conf.pkl_dir + "/word2idx.pkl", "wb"))
             print("Dumping idx2word")
-            pkl.dump(self.idx2word, open(conf.pkl_dir + "idx2word.pkl", "wb"))
+            pkl.dump(self.idx2word, open(conf.pkl_dir + "/idx2word.pkl", "wb"))
             # print "Dumping lines"
             # pkl.dump(self.lines, open("lines.pkl", "w"))
         else:
