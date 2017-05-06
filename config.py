@@ -9,7 +9,7 @@ class Config:
     lr = 0.001
     num_epochs = 20
     pkl_dir = "pkls"
-    ckpt_dir = "checkpoints"
+    ckpt_dir = "checkpoints/"
     mode = "TRAIN" # could be "TRAIN" or "TEST"
     ckpt_file = ""
     test_flie = "data/sentences.eval"
