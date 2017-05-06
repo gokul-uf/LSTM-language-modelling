@@ -134,7 +134,7 @@ class preprocessor:
             yield batch[:, :-1,:], batch[:, 1:, :]
 
     def load_embedding(self, session, emb, dim_embedding = conf.embed_size,
-        path = "wordembeddings-dim100.word2vec"):
+        path = conf.word2vec_path):
         '''
           session        Tensorflow session object
           vocab          A dictionary mapping token strings to vocabulary IDs

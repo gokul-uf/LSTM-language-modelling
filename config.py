@@ -2,8 +2,8 @@ class Config:
     batch_size = 64
     embed_size = 100
     vocab_size = 20000
-    num_hidden_state = 1024
-    proj_hidden_state = 512
+    num_hidden_state = 1024 # change to 1024 for task 1c
+    proj_hidden_state = 512 # only for task 1c
     seq_length = 30
     top_words = 20000 - 4
     lr = 0.001
@@ -12,4 +12,5 @@ class Config:
     ckpt_dir = "checkpoints/"
     mode = "TRAIN" # could be "TRAIN" or "TEST"
     ckpt_file = ""
+    word2vec_path = "wordembeddings-dim100.word2vec"
     test_flie = "data/sentences.eval"
