@@ -129,7 +129,7 @@ class preprocessor:
             batch = new_batch
             batch = np.asarray(batch)
             if batch.shape != (64, 30, 1):
-                print(len(lines))
+                print(batch.shape)
             assert batch.shape == (64, 30, 1)
             yield batch[:, :-1,:], batch[:, 1:, :]
 
