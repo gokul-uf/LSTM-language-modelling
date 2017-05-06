@@ -108,12 +108,12 @@ class preprocessor:
     def get_batch(self, filename = None):
         if filename == None:
             lines = self.lines
+            np.random.shuffle(lines)
         else:
             lines = []
             with open(filename) as f:
                 for line in f:
                     lines.append(line.strip().split(" "))
-        np.random.shuffle(lines)
         for i in range(0, 64 * (len(lines) // 64), conf.batch_size):
             new_batch = []
             batch = lines[i: i+64]
