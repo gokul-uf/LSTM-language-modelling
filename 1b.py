@@ -80,10 +80,10 @@ saver = tf.train.Saver()
 with tf.Session(config=config) as sess:
     if conf.mode == "TRAIN":
         print("Mode set to TRAIN")
-        print("Start training")
         sess.run(tf.global_variables_initializer())
         print("loading pretrained embeddings")
         preproc.load_embedding(session = sess, emb = embedding_matrix)
+        print("Start training")
         for i in range(conf.num_epochs):
             epoch_loss = 0
             print("epoch {}".format(i))
