@@ -28,8 +28,8 @@ assert word_embeddings.shape == (conf.batch_size, conf.seq_length - 1, conf.embe
 print("creating RNN")
 lstm_outputs = []
 with tf.variable_scope("rnn") as scope:
-    cell = LSTMCell(conf.num_hidden_state)
-    state = cell.zero_state(conf.batch_size, tf.float32, initializer=xavier_initializer())
+    cell = LSTMCell(conf.num_hidden_state, initializer=xavier_initializer())
+    state = cell.zero_state(conf.batch_size, tf.float32)
     for i in range(conf.seq_length - 1):
         if i > 0:
             scope.reuse_variables()
