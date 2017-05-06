@@ -106,7 +106,7 @@ with tf.Session(config=config) as sess:
                         break
                     ground_truth_id = label_batch[sentence_id, word_pos, 0]
                     sentence_cross_entropies.append( cross_entropies[ sentence_id, word_pos, ground_truth_id ] )
-                sentence_perplexity = 2**( -np.mean(sentence_cross_entropies) )
+                sentence_perplexity = 2**( np.mean(sentence_cross_entropies) )
                 print(sentence_perplexity)
     else:
         print("ERROR: unknown mode '{}', needs to be 'TRAIN' or 'TEST'".format(conf.mode))
