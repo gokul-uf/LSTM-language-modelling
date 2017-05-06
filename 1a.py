@@ -7,13 +7,6 @@ from preprocess import preprocessor
 from tensorflow.contrib.layers import xavier_initializer
 from tensorflow.contrib.rnn import LSTMCell
 
-'''
-TODO:
-1. saving the model DONE
-2. calculate perplexity 
-3. load custom embeddings
-'''
-
 # Input placeholders
 data = tf.placeholder(tf.int32, [None, conf.seq_length - 1, 1], "sentences")
 next_word = tf.placeholder(tf.int32, [None, conf.seq_length - 1, 1], "next_word")
@@ -52,7 +45,7 @@ predictions = tf.matmul(lstm_outputs, output_matrix) + output_bias
 # reshape the labels
 labels = tf.reshape(next_word, [conf.batch_size * (conf.seq_length - 1)])
 
-# softmax for computing the perplexity later on, not used elsewhere
+# softmax for computing the perplexity later on, not used elsewhere (no gradient computation)
 softmax = tf.nn.softmax(predictions)
 
 # Average Cross Entropy loss, compute CE separately to use in testing
@@ -103,18 +96,21 @@ with tf.Session(config=config) as sess:
         print("Loading Model")
         saver.restore(sess, conf.ckpt_dir + conf.ckpt_file)
         for data_batch, label_batch in preproc.get_batch(conf.test_file):
-           assert data_batch.shape == (64, 29, 1)
-           assert label_batch.shape == (64, 29, 1)
-           ce = sess.run(cross_entropy, feed_dict = {data: data_batch, next_word: label_batch})
-           ce = np.asarray(ce)
-           ce.reshape(conf.batch_size, (conf.seq_length - 1))
-           for i in range(conf.batch_size):
-                line_cross_entropy = 0
-                num_words = 0
-                for j in range(conf.seq_length - 1):
-                    if preproc.idx2word[data_batch[i][j]] != "<pad>":
-                        line_cross_entropy += ce[i][j]
-                        num_words += 1
-                print(np.power(2, line_cross_entropy / num_words)) #TODO, change
+            assert data_batch.shape == (64, 29, 1)
+            assert label_batch.shape == (64, 29, 1)
+            soft_max = sess.run(softmax, feed_dict = {data: data_batch})
+            soft_max = np.asarray(soft_max)
+            soft_max.reshape(conf.batch_size, (conf.seq_length - 1))
+            for i in range(conf.batch_size):
+                line_softmax = []
+                line = soft_max[i, :]
+                assert line.shape == (29, 20000)
+                j = 0
+                while(preproc.idx2word[data_batch[i, j, 0]] != '<eos>'):
+                    ground_truth_idx = label_batch[i, j, 0]
+                    line_softmax.append(line[j, ground_truth_idx])
+                    j+=1
+                line_perplexity = np.power(2, -1*np.mean(np.log(line_softmax)))
+                print(line_perplexity)
     else:
         print("ERROR: unknown mode '{}', needs to be 'TRAIN' or 'TEST'".format(conf.mode))
