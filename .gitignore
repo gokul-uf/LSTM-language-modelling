@@ -1,4 +1,5 @@
-data/*
-pkls/*
-checkpoints/*
+*/data/*
+*/pkls/*
+*/checkpoints/*
 *.pyc
+*.pkl
