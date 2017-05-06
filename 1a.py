@@ -109,7 +109,7 @@ with tf.Session(config=config) as sess:
                 while(preproc.idx2word[data_batch[i, j, 0]] != '<eos>'):
                     ground_truth_idx = label_batch[i, j, 0]
                     line_softmax.append(line[j, ground_truth_idx])
-                    j+=1
+                    j += 1
                 line_perplexity = np.power(2, -1*np.mean(np.log(line_softmax)))
                 print(line_perplexity)
     else:
