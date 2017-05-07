@@ -1,17 +1,3 @@
-creating RNN
-Starting preprocessing
-Reading file
-total lines: 2000000
-overflow lines ( > 28 words): 30167
-Extracting top 20k words
-Creating word to ID mapping
-Dumping the pkl files
-Dumping top_20k
-Dumping word2idx
-Dumping idx2word
-Start training
-Mode to greedy sentence CONTINUATION
-Loading Model
 `` no , '' i said , and i looked at him . <eos>
 correct ... <eos>
 `` i 'm sorry , '' i said , and i looked at him . <eos>
@@ -10012,51 +9998,3 @@ i am dead . <eos>
 `` no , '' i said , and i looked at him . <eos>
 solutions do n't have to be a <unk> . <eos>
 well then , he said raising , i okay know . <eos>
-`` no , '' i said , and i looked at him . <eos>
-correct ... <eos>
-`` i 'm sorry , '' i said , and i looked at him . <eos>
-peter was still trying to figure out how to get to the door . <eos>
-what was i supposed to do ? <eos>
-when he was done , he turned to face me . <eos>
-take some of your time . <eos>
-id told her that i was a <unk> , and i was a <unk> . <eos>
-throw to take a break from her , she 'd been bright to do it . <eos>
-we have no place to go . <eos>
-i felt that hot unwise of my own sweat and my body . <eos>
-it made for a <unk> , but it was a <unk> . <eos>
-i found the matches and the <unk> . <eos>
-`` you 're not going to be able to do that ? '' <eos>
-lizzie had been sexy for sunday , and the <unk> had been <unk> . <eos>
-even i could n't help but smile . <eos>
-of course , i was n't going to be able to keep up with him . <eos>
-thal felt like a <unk> of a <unk> . <eos>
-what if this was a <unk> ? <eos>
-malcolm decided to put the <unk> in the <unk> . <eos>
-i 'm not sure what i want to do . <eos>
-`` or maybe i 'm not . '' <eos>
-`` imagine the <unk> , '' he said . <eos>
-i 'm not sure what i want to do . <eos>
-<unk> , <unk> , <unk> , <unk> , <unk> , <unk> , <unk> , <unk> , <unk> , <eos>
-in america , he took a trapped of his coffee . <eos>
-i can ride with you . <eos>
-horde blood was a <unk> , and it was a <unk> . <eos>
-trent 's eyes were on me , and i could see the fear in his eyes . <eos>
-`` another one of the <unk> . <eos>
-`` and this is the <unk> ? '' <eos>
-the <unk> was a <unk> , <unk> , <unk> , and <unk> . <eos>
-once again , i was n't sure what to say . <eos>
-i 'm not sure what i want to do . <eos>
-then had to be . <eos>
-garrett looked at the <unk> . <eos>
-it was a <unk> , but it was a <unk> . <eos>
-`` what do you mean ? '' <eos>
-it was a <unk> , but it was a <unk> . <eos>
-`` christ , woman , '' he said , his voice shaking . <eos>
-`` do n't worry , '' i said , `` i 'll be there . '' <eos>
-twenty as a matter of the past , the <unk> had been <unk> . <eos>
-his gaze traveled over the <unk> . <eos>
-`` i 'm sorry , '' i said , and i looked at him . <eos>
-mum <unk> he gets to the <unk> . <eos>
-they , too , were a <unk> , <unk> , <unk> , <unk> , <unk> , <unk> , <eos>
-jackson <unk> . <eos>
-`` that 's a good idea . '' <eos>
