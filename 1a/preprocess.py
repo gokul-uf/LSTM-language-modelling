@@ -16,7 +16,6 @@ class preprocessor:
     word2idx = {}
     idx2word = {}
     lines = []
-    preprocessed_data = []
     loaded = False
 
     def __init__(self, dir_name = None):
@@ -25,16 +24,12 @@ class preprocessor:
             self.top_20k = []
             self.word2idx = {}
             self.idx2word = {}
-            self.lines = []
-            self.preprocessed_data = []
             self.loaded = False
         else:
             self.tokens = {}
             self.top_20k =  pkl.load(open(dir_name+"/top_20k.pkl"))
             self.word2idx = pkl.load(open(dir_name+"/word2idx.pkl"))
             self.idx2word = pkl.load(open(dir_name+"/idx2word.pkl"))
-            self.lines =    pkl.load(open(dir_name+"/lines.pkl"))
-            self.preprocessed_data = lines
             self.loaded = True
 
     def preprocess(self, filename):
