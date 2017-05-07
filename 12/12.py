@@ -127,23 +127,29 @@ with tf.Session(config=config) as sess:
 
             # Compute continuation position in label_batch
             for batch_id in range(conf.batch_size):
-                for word_pos in range(conf.seq_length-1):
+                sentence_complete = True
+                for word_pos in range(conf.completed_sentence_length-2):
                     if preproc.idx2word[ label_batch[batch_id, word_pos, 0] ] == '<eos>':
                         batch_id2num_words[batch_id] = word_pos
+                        sentence_complete = False
                         break
+                if sentence_complete:
+                    data_batch[batch_id, conf.completed_sentence_length-1, 0] = '<eos>'
+                    label_batch[batch_id, conf.completed_sentence_length-2, 0] = '<eos>'
 
             # Run session until all sentences have at least 18 words (+ <box> + <eos> gives 20)
-            while not batch_id2num_words.empty():
-                prediction_logits = np.argmax( np.reshape( sess.run(prediction_logits, feed_dict={data: data_batch, next_word: label_batch}),
-                                                           [conf.batch_size, (conf.seq_length - 1), conf.vocab_size] ), axis=2)
+            while len(batch_id2num_words)>0:
+                prediction_argmax_logits = np.argmax( np.reshape( sess.run(prediction_logits, feed_dict={data: data_batch, next_word: label_batch}),
+                                                                  [conf.batch_size, (conf.seq_length - 1), conf.vocab_size] ), axis=2)
                 for batch_id in batch_id2num_words:
-                    data_batch[ batch_id, batch_id2num_words[batch_id]+1, 0] = prediction_logits[batch_id, batch_id2num_words[batch_id]+1, 0]
-                    label_batch[batch_id, batch_id2num_words[batch_id],   0] = prediction_logits[batch_id, batch_id2num_words[batch_id],   0]
-                    batch_id2num_words[batch_id] += 1
-                    if batch_id2num_words[batch_id] >= conf.completed_sentence_length-2: # The completed sentence must not be longer than 20 symbols, append <eos> at the end
-                        data_batch[batch_id, batch_id2num_words[batch_id] + 1, 0] = '<eos>'
-                        label_batch[batch_id, batch_id2num_words[batch_id], 0] = '<eos>'
-                        del batch_id2num_words[batch_id]
+                    if preproc.idx2word[ prediction_argmax_logits[batch_id, batch_id2num_words[batch_id], 0] ] not in {'<unk>','<bos>','<pad>'}:
+                        data_batch[ batch_id, batch_id2num_words[batch_id]+1, 0] = prediction_argmax_logits[batch_id, batch_id2num_words[batch_id], 0]
+                        label_batch[batch_id, batch_id2num_words[batch_id],   0] = prediction_argmax_logits[batch_id, batch_id2num_words[batch_id], 0]
+                        batch_id2num_words[batch_id] += 1
+                        if batch_id2num_words[batch_id] >= conf.completed_sentence_length-2: # The completed sentence must not be longer than 20 symbols, append <eos> at the end
+                            data_batch[batch_id, batch_id2num_words[batch_id] + 1, 0] = '<eos>'
+                            label_batch[batch_id, batch_id2num_words[batch_id], 0] = '<eos>'
+                            del batch_id2num_words[batch_id]
 
             for batch_id in range(conf.batch_size):
                 completed_sentence = []
