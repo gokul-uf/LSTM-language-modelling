@@ -10,9 +10,11 @@ class Config:
     lr = 0.001
     num_epochs = 20
     pkl_dir = "pkls"
-    ckpt_dir = "../1a/checkpoints/"
+    ckpt_dir = "../1c/checkpoints/"
     mode = "CONTINUATION" # could be "TRAIN" or "TEST" or "CONTINUATION"
-    ckpt_file = ""
+    ckpt_file = "epoch_0.ckpt"
     word2vec_path = "../wordembeddings-dim100.word2vec"
-    test_file = "../data/sentences.eval"
+    test_file = "../data/sentences_test"
+    test_dir = "evaluation/"
     continuation_file = "../data/sentences.continuation"
+    continuation_dir = "continuation/"

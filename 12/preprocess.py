@@ -105,6 +105,16 @@ class preprocessor:
             self.lines[i] = line
         self.preprocessed_data = self.lines
 
+    def get_num_lines(self, filename = None):
+        if filename == None:
+            lines = self.lines
+        else:
+            lines = []
+            with open(filename) as f:
+                for line in f:
+                    lines.append(line.strip().split(" "))
+        return len(lines)
+
     def get_batch(self, filename = None):
         if filename == None:
             lines = self.lines
