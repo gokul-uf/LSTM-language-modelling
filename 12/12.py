@@ -131,7 +131,7 @@ with tf.Session(config=config) as sess:
         print("Loading Model")
         saver.restore(sess, conf.ckpt_dir + conf.ckpt_file)
         sentence_continuations = []
-        for data_batch, label_batch in preproc.get_batch(conf.continuation_file):
+        for data_batch, label_batch in tqdm(preproc.get_batch(conf.continuation_file), total=preproc.get_num_lines(conf.continuation_file)//conf.batch_size):
 
             # Store continuation position in label_batch
             batch_id2num_words = np.ndarray(shape=conf.batch_size,dtype=int)
@@ -146,10 +146,10 @@ with tf.Session(config=config) as sess:
                         batch_id2num_words[batch_id] = word_pos
                         sentence_complete_batch[batch_id] = False
 
-                        sentence = []
-                        for i in range(word_pos+1):
-                            sentence.append(preproc.idx2word[label_batch[batch_id, i, 0]])
-                        print("Found sentence: " + ' '.join(sentence))
+                        # sentence = []
+                        # for i in range(word_pos+1):
+                        #     sentence.append(preproc.idx2word[label_batch[batch_id, i, 0]])
+                        # print("Found sentence: " + ' '.join(sentence))
 
                         break
                 if sentence_complete_batch[batch_id]: # sentence already fills 20 symbols including '<bos>' and '<eos>'
@@ -163,7 +163,7 @@ with tf.Session(config=config) as sess:
             while np.logical_and(batch_id2num_words < conf.completed_sentence_length-2,
                                  np.logical_not(sentence_complete_batch)).any():
                 # import pdb; pdb.set_trace()
-                print("Sentence endings at..." + str(batch_id2num_words))
+                #print("Sentence endings at..." + str(batch_id2num_words))
                 prediction_argmax_logits = np.argmax( np.reshape( sess.run(predictions, feed_dict={data: data_batch, next_word: label_batch}),
                                                                   [conf.batch_size, (conf.seq_length - 1), conf.vocab_size] ), axis=2)
                 for batch_id in range(conf.batch_size):
@@ -172,7 +172,7 @@ with tf.Session(config=config) as sess:
                             data_batch[ batch_id, batch_id2num_words[batch_id]+1, 0] = prediction_argmax_logits[batch_id, batch_id2num_words[batch_id]]
                             label_batch[batch_id, batch_id2num_words[batch_id],   0] = prediction_argmax_logits[batch_id, batch_id2num_words[batch_id]]
                             batch_id2num_words[batch_id] += 1
-                            print("Updating " + str(batch_id) + ": " + ' '.join([preproc.idx2word[ label_batch[batch_id, i,   0] ] for i in range(conf.completed_sentence_length)]) )
+                            #print("Updating " + str(batch_id) + ": " + ' '.join([preproc.idx2word[ label_batch[batch_id, i,   0] ] for i in range(conf.completed_sentence_length)]) )
                             if prediction_argmax_logits[batch_id, batch_id2num_words[batch_id]-1] == preproc.word2idx['<eos>']:
                                 sentence_complete_batch[batch_id] = True
                             elif batch_id2num_words[batch_id] >= conf.completed_sentence_length-2: # The completed sentence must not be longer than 20 symbols, append <eos> at the end
