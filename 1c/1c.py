@@ -43,13 +43,13 @@ lstm_outputs = tf.stack(lstm_outputs, axis = 1)
 lstm_outputs = tf.reshape(lstm_outputs, [conf.batch_size * (conf.seq_length - 1), conf.num_hidden_state])
 assert lstm_outputs.shape == (conf.batch_size * (conf.seq_length - 1), conf.num_hidden_state)
 lstm_outputs = tf.matmul(lstm_outputs, projection_matrix)
-prediction_logits = tf.matmul(lstm_outputs, output_matrix) + output_bias
+predictions = tf.matmul(lstm_outputs, output_matrix) + output_bias
 
 # reshape the labels
 labels = tf.reshape(next_word, [conf.batch_size * (conf.seq_length - 1)])
 
 # Average Cross Entropy loss, compute CE separately to use in testing
-cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits = prediction_logits, labels = labels)
+cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits = predictions, labels = labels)
 loss = tf.reduce_sum(cross_entropy)
 
 #training

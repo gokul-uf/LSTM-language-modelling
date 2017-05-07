@@ -47,13 +47,13 @@ with tf.variable_scope("rnn") as scope:
 lstm_outputs = tf.stack(lstm_outputs, axis = 1)
 lstm_outputs = tf.reshape(lstm_outputs, [conf.batch_size * (conf.seq_length - 1), conf.num_hidden_state])
 assert lstm_outputs.shape == (conf.batch_size * (conf.seq_length - 1), conf.num_hidden_state)
-prediction_logits = tf.matmul(lstm_outputs, output_matrix) + output_bias
+predictions = tf.matmul(lstm_outputs, output_matrix) + output_bias
 
 # reshape the labels
 labels = tf.reshape(next_word, [conf.batch_size * (conf.seq_length - 1)])
 
 # Average Cross Entropy loss, compute CE separately to use in testing
-cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits = prediction_logits, labels = labels)
+cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits = predictions, labels = labels)
 loss = tf.reduce_sum(cross_entropy)
 
 #training
@@ -140,7 +140,7 @@ with tf.Session(config=config) as sess:
 
             # Run session until all sentences have at least 18 words (+ <box> + <eos> gives 20)
             while len(batch_id2num_words)>0:
-                prediction_argmax_logits = np.argmax( np.reshape( sess.run(prediction_logits, feed_dict={data: data_batch, next_word: label_batch}),
+                prediction_argmax_logits = np.argmax( np.reshape( sess.run(predictions, feed_dict={data: data_batch, next_word: label_batch}),
                                                                   [conf.batch_size, (conf.seq_length - 1), conf.vocab_size] ), axis=2)
                 for batch_id in batch_id2num_words:
                     if preproc.idx2word[ prediction_argmax_logits[batch_id, batch_id2num_words[batch_id], 0] ] not in {'<unk>','<bos>','<pad>'}:
