@@ -1,16 +1,16 @@
-### nlu_project
+# nlu_project
 Code repo for projects of the natural language understanding course
 
-# data
+## Data
 
-Data is kept in the data folder (not part of this repo) as follows:
+The data is kept in the data folder (not part of this repo) as follows:
 
 data/sentences.continuation
 data/sentences_test
 data/sentences.train
 
 
-# Evaluation
+## Evaluation
 
 The perplexity is calculated based on the formula on the lower half of
 page 2 on the assignment sheet on test sentences parsed as
