@@ -28,7 +28,7 @@ assert word_embeddings.shape == (conf.batch_size, conf.seq_length - 1, conf.embe
 print("creating RNN")
 lstm_outputs = []
 with tf.variable_scope("rnn") as scope:
-    cell = LSTMCell(conf.num_hidden_state)
+    cell = LSTMCell(conf.num_hidden_state, initializer=xavier_initializer())
     state = cell.zero_state(conf.batch_size, tf.float32)
     for i in range(conf.seq_length - 1):
         if i > 0:
@@ -103,7 +103,7 @@ with tf.Session(config=config) as sess:
             soft_max = soft_max.reshape(conf.batch_size, (conf.seq_length - 1), conf.vocab_size)
             assert soft_max.shape == (conf.batch_size, (conf.seq_length - 1), conf.vocab_size)
             for i in range(conf.batch_size):
-                line_softmax = []
+                line_softmax = [0] # <bos> adds nothing to perplexity, only to the denominator
                 line = soft_max[i, :, :]
                 assert line.shape == (29, 20000)
                 j = 0
@@ -111,7 +111,7 @@ with tf.Session(config=config) as sess:
                     ground_truth_idx = label_batch[i, j, 0]
                     line_softmax.append(line[j, ground_truth_idx])
                     j += 1
-                line_perplexity = np.power(2, -1*np.mean(np.log(line_softmax)))
+                line_perplexity = np.power(2, -1*np.mean(np.log2(line_softmax)))
                 print(line_perplexity)
     else:
         print("ERROR: unknown mode '{}', needs to be 'TRAIN' or 'TEST'".format(conf.mode))
