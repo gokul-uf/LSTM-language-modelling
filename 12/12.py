@@ -8,13 +8,6 @@ from tensorflow.contrib.layers import xavier_initializer
 from tensorflow.contrib.rnn import LSTMCell
 import datetime
 
-'''
-TODO:
-1. saving the model DONE
-2. calculate perplexity 
-3. load custom embeddings
-'''
-
 # Input placeholders
 data = tf.placeholder(tf.int32, [None, conf.seq_length - 1, 1], "sentences")
 next_word = tf.placeholder(tf.int32, [None, conf.seq_length - 1, 1], "next_word")
