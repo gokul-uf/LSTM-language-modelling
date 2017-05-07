@@ -15,4 +15,4 @@ class Config:
     ckpt_file = ""
     word2vec_path = "../wordembeddings-dim100.word2vec"
     test_file = "../data/sentences.eval"
-    continuation_file = "../data/sentences.eval"
+    continuation_file = "../data/sentences.continuation"
