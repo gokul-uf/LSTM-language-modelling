@@ -10,7 +10,8 @@ class Config:
     num_epochs = 20
     pkl_dir = "pkls"
     ckpt_dir = "checkpoints/"
-    mode = "TRAIN" # could be "TRAIN" or "TEST"
-    ckpt_file = ""
+    mode = "TEST" # could be "TRAIN" or "TEST"
+    ckpt_file = "epoch_0.ckpt"
     word2vec_path = "../wordembeddings-dim100.word2vec"
-    test_file = "../data/sentences.eval"
+    test_file = "../data/sentences_test"
+    test_dir = "evaluation/"

@@ -87,6 +87,16 @@ class preprocessor:
             self.word2idx[word] = idx
             self.idx2word[idx] = word
 
+    def get_num_lines(self, filename = None):
+        if filename == None:
+            lines = self.lines
+        else:
+            lines = []
+            with open(filename) as f:
+                for line in f:
+                    lines.append(line.strip().split(" "))
+        return len(lines)
+
     def get_batch(self, filename = None):
         if filename == None:
             lines = self.lines

@@ -87,6 +87,16 @@ class preprocessor:
             self.word2idx[word] = idx
             self.idx2word[idx] = word
 
+    def get_num_lines(self, filename = None):
+        if filename == None:
+            lines = self.lines
+        else:
+            lines = []
+            with open(filename) as f:
+                for line in f:
+                    lines.append(line.strip().split(" "))
+        return len(lines)
+
     def get_batch(self, filename = None):
         if filename == None:
             lines = self.lines
@@ -96,6 +106,10 @@ class preprocessor:
             with open(filename) as f:
                 for line in f:
                     lines.append(line.strip().split(" "))
+        residual_lines = len(lines) % conf.batch_size
+        if residual_lines != 0:
+            for i in range(conf.batch_size - residual_lines):
+                lines.append(lines[i])
         for i in range(0, conf.batch_size * (len(lines) // conf.batch_size), conf.batch_size):
             new_batch = []
             batch = lines[i: i+64]
@@ -111,7 +125,7 @@ class preprocessor:
             batch = np.asarray(batch)
             if batch.shape != (64, 30, 1):
                 print("Residual batch with {} lines instead of conf.batch_size == {}. ".format(len(lines), conf.batch_size))
-            #assert batch.shape == (64, 30, 1)
+            assert batch.shape == (64, 30, 1)
             yield batch[:, :-1,:], batch[:, 1:, :] # RNN input and output word sequences (input words excluding last sentence word, output words excluding first sentence word)
 
     def load_embedding(self, session, emb, dim_embedding = conf.embed_size,

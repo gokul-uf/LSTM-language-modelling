@@ -6,6 +6,7 @@ from config import Config as conf
 from preprocess import preprocessor
 from tensorflow.contrib.layers import xavier_initializer
 from tensorflow.contrib.rnn import LSTMCell
+import datetime
 
 # Input placeholders
 data = tf.placeholder(tf.int32, [None, conf.seq_length - 1, 1], "sentences")
@@ -94,21 +95,28 @@ with tf.Session(config=config) as sess:
                 set to the ckpt file in {} folder you want to load'''.format(conf.ckpt_dir))
         print("Loading Model")
         saver.restore(sess, conf.ckpt_dir + conf.ckpt_file)
+        sentence_perplexities = []
         for data_batch, label_batch in preproc.get_batch(conf.test_file):
             assert data_batch.shape == (64, 29, 1)
             assert label_batch.shape == (64, 29, 1)
             cross_entropies = sess.run(cross_entropy, feed_dict={data: data_batch, next_word: label_batch})
             cross_entropies = np.asarray(cross_entropies)
-            cross_entropies = cross_entropies.reshape(conf.batch_size, (conf.seq_length - 1), conf.vocab_size)
-            assert cross_entropies.shape == (conf.batch_size, (conf.seq_length - 1), conf.vocab_size)
+            cross_entropies = cross_entropies.reshape(conf.batch_size, (conf.seq_length - 1))
+            assert cross_entropies.shape == (conf.batch_size, (conf.seq_length - 1))
             for sentence_id in range(conf.batch_size):
                 sentence_cross_entropies = [0] # initial <bos> has likelihood 1
                 for word_pos in range(conf.seq_length - 1):
-                    if preproc.idx2word[data_batch[sentence_id, word_pos, 0]] == '<eos>':
+                    if preproc.idx2word[label_batch[sentence_id, word_pos, 0]] == '<pad>':
                         break
-                    ground_truth_id = label_batch[sentence_id, word_pos, 0]
-                    sentence_cross_entropies.append( cross_entropies[sentence_id, word_pos, ground_truth_id] )
+                    sentence_cross_entropies.append( cross_entropies[ sentence_id, word_pos ] )
                 sentence_perplexity = 2**( np.mean(sentence_cross_entropies) )
-                print(sentence_perplexity)
+                #print(sentence_perplexity)
+                sentence_perplexities.append(sentence_perplexity)
+        if not os.path.exists(conf.test_dir):
+            os.makedirs(conf.test_dir)
+        with open(conf.test_dir + 'sentences_test_perplexity_' + str(datetime.datetime.now()), 'w') as perplexity_file:
+            for sentence_id in range(preproc.get_num_lines(conf.test_file)):
+                perplexity_file.write(str(sentence_perplexities[sentence_id]))
+                perplexity_file.write('\n')
     else:
         print("ERROR: unknown mode '{}', needs to be 'TRAIN' or 'TEST'".format(conf.mode))
