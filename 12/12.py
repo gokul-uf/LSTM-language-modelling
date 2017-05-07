@@ -131,7 +131,7 @@ with tf.Session(config=config) as sess:
         print("Loading Model")
         saver.restore(sess, conf.ckpt_dir + conf.ckpt_file)
         sentence_continuations = []
-        for data_batch, label_batch in tqdm(preproc.get_batch(conf.continuation_file), total=preproc.get_num_lines(conf.continuation_file)//conf.batch_size):
+        for data_batch, label_batch in tqdm(preproc.get_batch(conf.continuation_file), total=preproc.get_num_lines(conf.continuation_file)//conf.batch_size+1):
 
             # Store continuation position in label_batch
             batch_id2num_words = np.ndarray(shape=conf.batch_size,dtype=int)
@@ -153,7 +153,7 @@ with tf.Session(config=config) as sess:
 
                         break
                 if sentence_complete_batch[batch_id]: # sentence already fills 20 symbols including '<bos>' and '<eos>'
-                    print("Found a sentence that is already complete: " + ' '.join(preproc.idx2word[label_batch[ batch_id, :, 0]]))
+                    print("Found a sentence that is already complete: " + ' '.join([preproc.idx2word[label_batch[ batch_id, id, 0]] for id in range(conf.seq_length-1) ]))
                     data_batch[batch_id, conf.completed_sentence_length-1, 0] = preproc.word2idx['<eos>']
                     label_batch[batch_id, conf.completed_sentence_length-2, 0] = preproc.word2idx['<eos>']
 

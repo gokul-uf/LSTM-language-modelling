@@ -124,6 +124,9 @@ class preprocessor:
             with open(filename) as f:
                 for line in f:
                     lines.append(line.strip().split(" "))
+                num_extra_lines = conf.batch_size - (len(lines) % conf.batch_size)
+                for i in range(num_extra_lines):
+                    lines.append(lines[i])
         for i in range(0, 64 * (len(lines) // 64), conf.batch_size):
             new_batch = []
             batch = lines[i: i+64]
