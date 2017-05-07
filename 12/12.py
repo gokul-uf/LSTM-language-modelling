@@ -125,7 +125,7 @@ with tf.Session(config=config) as sess:
             # Store continuation position in label_batch
             batch_id2num_words = {}
 
-            # Compute continuation position in label_batch
+            # Compute continuation position in label_batch by finding position of '<eos>' in label_batch for each sentence
             for batch_id in range(conf.batch_size):
                 sentence_complete = True
                 for word_pos in range(conf.completed_sentence_length-2):
@@ -133,7 +133,8 @@ with tf.Session(config=config) as sess:
                         batch_id2num_words[batch_id] = word_pos
                         sentence_complete = False
                         break
-                if sentence_complete:
+                if sentence_complete: # sentence already fills 20 symbols including '<bos>' and '<eos>'
+                    print("Found a sentence that is already complete: " + ' '.join(preproc.idx2word[label_batch[ batch_id, :, 0]]))
                     data_batch[batch_id, conf.completed_sentence_length-1, 0] = '<eos>'
                     label_batch[batch_id, conf.completed_sentence_length-2, 0] = '<eos>'
 
