@@ -114,6 +114,11 @@ class preprocessor:
             with open(filename) as f:
                 for line in f:
                     lines.append(line.strip().split(" "))
+            # We miss a few lines in the end because len(lines) % 64 != 0, 
+            # so just add stuff to the back, and throw away the last results before reporting
+            num_lines = len(lines)
+            lines.extend(lines[:conf.batch_size - (num_lines % conf.batch_size)])
+            assert len(lines) % conf.batch_size == 0
         for i in range(0, 64 * (len(lines) // 64), conf.batch_size):
             new_batch = []
             batch = lines[i: i+64]
